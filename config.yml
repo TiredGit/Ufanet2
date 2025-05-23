@@ -1,0 +1,51 @@
+listener:
+  serverPort: 80 # k8s probes, optional
+  slotName: myslot_1
+  refreshConnection: 30s
+  heartbeatInterval: 10s
+  filter:
+    tables:
+      discounts_app_city:
+        - insert
+        - update
+        - delete
+      discounts_app_company:
+        - insert
+        - update
+        - delete
+      discounts_app_discountcard:
+        - insert
+        - update
+        - delete
+      discounts_app_discountcategory:
+        - insert
+        - update
+        - delete
+  topicsMap:
+    public_discounts_app_city: wal_city
+    public_discounts_app_company: wal_company
+    public_discounts_app_discountcard: wal_discount
+    public_discounts_app_discountcategory: wal_category
+logger:
+  level: info
+  fmt: json
+database:
+  host: db
+  port: 5432
+  name: ufanet
+  user: ufanet_admin
+  password: ufanet_password
+  debug: false
+publisher:
+  type: kafka
+  messageKeyFrom: some_table_field # Kafka only
+  address: kafka:9092
+  enable_tls: false # Kafka only
+#  client_cert: "cert.pem" # Kafka only
+#  client_key: "key.pub" # Kafka only
+#  ca_cert: "ca.pem" # Kafka only
+  topic: "wal_listener"
+  topicPrefix: ""
+monitoring:
+  sentryDSN: ""
+  promAddr: ":2112"

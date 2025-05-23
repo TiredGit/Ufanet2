@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgres:17.4
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./replica.sql:/app/scripts/replica.sql
+    environment:
+      POSTGRES_DB: ufanet
+      POSTGRES_USER: ufanet_admin
+      POSTGRES_PASSWORD: ufanet_password
+    command: >
+      postgres
+      -c wal_level=logical
+      -c max_replication_slots=5
+
+  web:
+    image: edwarddocker2/ufanet_practice-web-1:latest
+    command: >
+      uv run python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DEBUG: 1
+      DB_NAME: ufanet
+      DB_USER: ufanet_admin
+      DB_PASSWORD: ufanet_password
+      DB_HOST: db
+      DB_PORT: 5432
+    volumes:
+      - media_data:/Ufanet_practice/media
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:9093
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,OUTSIDE://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+
+  wal-listener:
+    image: ihippik/wal-listener:latest
+    volumes:
+      - ./config.yml:/app/config.yml:ro
+    depends_on:
+      - db
+      - kafka
+    environment:
+      WAL_LISTENER_STARTUP_DELAY: "10"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  media_data:
