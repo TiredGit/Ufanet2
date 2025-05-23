@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Уведомления об изменениях в БД</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/db-logo.png" sizes="32x32" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <h1>Уведомления об изменениях в БД</h1>
+        <div class="button-bar">
+            <a href="?selected=city" style="text-decoration: none">
+            <button>Город</button>
+            </a>
+            <a href="?selected=category" style="text-decoration: none">
+            <button>Раздел</button>
+            </a>
+            <a href="?selected=discount" style="text-decoration: none">
+            <button>Предложение</button>
+            </a>
+            <a href="?selected=company" style="text-decoration: none">
+            <button>Компания</button>
+            </a>
+        </div>
+        <a href="?selected=all" style="text-decoration: none">
+        <button class="button-all">Все</button>
+        </a>
+        <div class="messages">
+            {%- for event in events -%}
+            <div class="message"><p><strong>Общие данные</strong></p><p>Таблица: {{ event.table }}</p><p>Действие: {{ event.action }}</p><p>Время изменения: {{ event.commitTime }}</p>
+                {% if event.data -%}<p><strong>Данные:</strong></p><ul>
+                    {%- for key, value in event.data.items() -%}<li>{{ key }}: {{ value }}</li>{%- endfor -%}
+                </ul>
+                {%- endif %}
+                {% if event.dataOld -%}
+                <p><strong>Старые данные:</strong></p><ul>
+                    {%- for key, value in event.dataOld.items() -%}<li>{{ key }}: {{ value }}</li>{%- endfor -%}
+                </ul>
+                {%- endif -%}
+            </div>
+            {%- endfor -%}
+        </div>
+    </div>
+</body>
+</html>
