@@ -1,3 +1,6 @@
+"""
+main.py — Основной файл запуска FastAPI-приложения
+"""
 import logging
 import uvicorn
 import asyncio
@@ -14,10 +17,12 @@ from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+"""Логгер сообщений"""
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """асинхронный контекстный менеджер, запускающий `consume()` из `kafka_consumer` при старте приложения и останавливающий его при завершении"""
     logger.info("Starting Kafka consumer task")
     task = asyncio.create_task(consume())
     yield
@@ -26,7 +31,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+"""Запускаемое приложение"""
 templates = Jinja2Templates(directory="templates")
+"""Отображает HTML-шаблоны с использованием Jinja2"""
 templates.env.trim_blocks = True
 templates.env.lstrip_blocks = True
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -34,9 +41,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def get_event_list(request: Request, selected: Optional[str] = None):
+    """HTTP GET-обработчик корневого пути `/`, рендерит шаблон `index.html` с событиями"""
     return templates.TemplateResponse("index.html", {"request": request, "events": get_events(selected)})
 
 
 
 if __name__ == '__main__':
-    uvicorn.run("main:app", port=8001, reload=True)
+    uvicorn.run("main:app", port=8001, reload=True, host='0.0.0.0')

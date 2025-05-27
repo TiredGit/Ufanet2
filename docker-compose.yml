@@ -66,6 +66,17 @@ services:
       WAL_LISTENER_STARTUP_DELAY: "10"
     restart: unless-stopped
 
+  consumer:
+    build: .
+    command: uv run python main.py
+    ports:
+      - "8001:8001"
+      - "8081:8081"
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_STARTUP_DELAY: 10
+
 volumes:
   postgres_data:
   media_data:
