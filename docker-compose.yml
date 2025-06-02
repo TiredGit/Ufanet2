@@ -4,6 +4,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./replica.sql:/app/scripts/replica.sql
+      - ./replica.sql/:/docker-entrypoint-initdb.d/replica.sql
     environment:
       POSTGRES_DB: ufanet
       POSTGRES_USER: ufanet_admin
@@ -14,9 +15,11 @@ services:
       -c max_replication_slots=5
 
   web:
-    image: edwarddocker2/ufanet_practice-web-1:latest
-    command: >
-      uv run python manage.py runserver 0.0.0.0:8000
+    build:
+      context: "../Ufanet_practice"
+    command: sh -c "uv run python manage.py migrate &&
+         uv run pytest --cov --cov-fail-under=80 &&
+         uv run python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     depends_on:
@@ -68,14 +71,16 @@ services:
 
   consumer:
     build: .
-    command: uv run python main.py
+    command: sh -c "./wait-for-kafka.sh &&
+                    uv run pytest --cov --cov-fail-under=80 &&
+                    uv run python main.py"
     ports:
       - "8001:8001"
       - "8081:8081"
     depends_on:
       - kafka
     environment:
-      KAFKA_STARTUP_DELAY: 10
+      KAFKA_STARTUP_DELAY: 5
 
 volumes:
   postgres_data:

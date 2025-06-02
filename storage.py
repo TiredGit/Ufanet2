@@ -10,7 +10,7 @@ def add_event(data):
 
 
 def get_events(event_type):
-    """Филтьтрация и вывод нужных сообщений"""
+    """Фильтрация и вывод нужных сообщений"""
     if event_type == 'city':
         return list(filter(lambda x: x['table'] == 'discounts_app_city', events))
     elif event_type == 'company':

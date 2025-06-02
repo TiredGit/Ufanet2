@@ -25,9 +25,18 @@ async def lifespan(app: FastAPI):
     """асинхронный контекстный менеджер, запускающий `consume()` из `kafka_consumer` при старте приложения и останавливающий его при завершении"""
     logger.info("Starting Kafka consumer task")
     task = asyncio.create_task(consume())
-    yield
-    task.cancel()
-    logger.info("Stopping Kafka consumer task")
+    try:
+        yield
+    finally:
+        task.cancel()
+        try:
+            await asyncio.wait_for(task, timeout=3)
+        except asyncio.TimeoutError:
+            logger.error("Consumer task didn't stop in time")
+        except Exception as e:
+            logger.error(f"Unexpected error during shutdown: {e}")
+        finally:
+            logger.info("Consumer task stopped")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -42,7 +51,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 async def get_event_list(request: Request, selected: Optional[str] = None):
     """HTTP GET-обработчик корневого пути `/`, рендерит шаблон `index.html` с событиями"""
-    return templates.TemplateResponse("index.html", {"request": request, "events": get_events(selected)})
+    return templates.TemplateResponse(request, "index.html", {"events": get_events(selected)})
 
 
 

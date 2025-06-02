@@ -1,2 +1,1 @@
-docker-compose exec web uv run python manage.py migrate
 docker-compose exec -T db psql -U ufanet_admin -d ufanet -f /app/scripts/replica.sql
