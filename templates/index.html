@@ -27,7 +27,7 @@
         <button class="button-all">Все</button>
         </a>
         <div class="messages">
-            {%- for event in events -%}
+            {%- for event in events -%}{% if request.url.hostname == 'test' or event.id != 'test_id' %}
             <div class="message"><p><strong>Общие данные</strong></p><p>Таблица: {{ event.table }}</p><p>Действие: {{ event.action }}</p><p>Время изменения: {{ event.commitTime }}</p>
                 {% if event.data -%}<p><strong>Данные:</strong></p><ul>
                     {%- for key, value in event.data.items() -%}<li>{{ key }}: {{ value }}</li>{%- endfor -%}
@@ -39,7 +39,7 @@
                 </ul>
                 {%- endif -%}
             </div>
-            {%- endfor -%}
+            {% endif %}{%- endfor -%}
         </div>
     </div>
 </body>
